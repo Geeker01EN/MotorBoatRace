@@ -2,6 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct Wave
+{
+    public float amplitude;
+    public float frequency;
+    public float lenght;
+    public Vector3 origin;
+}
+
 public class Water : MonoBehaviour
 {
 
@@ -9,10 +18,7 @@ public class Water : MonoBehaviour
     [SerializeField] int height;
     [SerializeField] float squareSize;
 
-    [SerializeField] float amplitude;
-    [SerializeField] float frequency;
-    [SerializeField] float lenght;
-    [SerializeField] Vector3 origin;
+    [SerializeField] Wave[] waves;
 
     Vector3[] vertices;
     Mesh mesh;
@@ -34,7 +40,7 @@ public class Water : MonoBehaviour
     {
         time += Time.deltaTime;
 
-        CalculateWave(mesh.vertices);
+        CalculateWaves(mesh.vertices);
     }
 
     void MakeMesh(MeshFilter meshFilter)
@@ -46,12 +52,12 @@ public class Water : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 vertices[(x + y * width) * 6] = new Vector3(-(width * squareSize)/2 + x * squareSize, 0, height * squareSize / 2 - y * squareSize);
-                vertices[(x + y * width) * 6 + 1] = new Vector3(-(width * squareSize) / 2 + x * squareSize + width, 0, height * squareSize / 2 - y * squareSize);
-                vertices[(x + y * width) * 6 + 2] = new Vector3(-(width * squareSize) / 2 + x * squareSize, 0, height * squareSize / 2 - y * squareSize - height);
+                vertices[(x + y * width) * 6 + 1] = new Vector3(-(width * squareSize) / 2 + x * squareSize + squareSize, 0, height * squareSize / 2 - y * squareSize);
+                vertices[(x + y * width) * 6 + 2] = new Vector3(-(width * squareSize) / 2 + x * squareSize, 0, height * squareSize / 2 - y * squareSize - squareSize);
 
-                vertices[(x + y * width) * 6 + 3] = new Vector3(-(width * squareSize) / 2 + x * squareSize, 0, height * squareSize / 2 - y * squareSize - height);
-                vertices[(x + y * width) * 6 + 4] = new Vector3(-(width * squareSize) / 2 + x * squareSize + width, 0, height * squareSize / 2 - y * squareSize);
-                vertices[(x + y * width) * 6 + 5] = new Vector3(-(width * squareSize) / 2 + x * squareSize + width, 0, height * squareSize / 2 - y * squareSize - height);
+                vertices[(x + y * width) * 6 + 3] = new Vector3(-(width * squareSize) / 2 + x * squareSize, 0, height * squareSize / 2 - y * squareSize - squareSize);
+                vertices[(x + y * width) * 6 + 4] = new Vector3(-(width * squareSize) / 2 + x * squareSize + squareSize, 0, height * squareSize / 2 - y * squareSize);
+                vertices[(x + y * width) * 6 + 5] = new Vector3(-(width * squareSize) / 2 + x * squareSize + squareSize, 0, height * squareSize / 2 - y * squareSize - squareSize);
 
                 triangles[(x + y * width) * 6] = (x + y * width) * 6;
                 triangles[(x + y * width) * 6 + 1] = (x + y * width) * 6 + 1;
@@ -69,11 +75,38 @@ public class Water : MonoBehaviour
         meshFilter.mesh = mesh;
     }
 
-    void CalculateWave(Vector3[] vertices)
+    void CalculateWaves(Vector3[] vertices)
     {
-        for (int v = 0; v < vertices.Length; v++)
+        /*for (int v = 0; v < vertices.Length; v++)
         {
-            vertices[v].y = amplitude * Mathf.Sin(2 * Mathf.PI * (Vector3.Distance(origin, vertices[v]) / lenght - (float)time * frequency));
+            vertices[v].y = 0;
+
+            for (int w = 0; w < waves.Length; w++)
+            {
+                vertices[v].y += waves[w].amplitude * Mathf.Sin(2 * Mathf.PI * (Vector3.Distance(waves[w].origin, vertices[v]) / waves[w].lenght - (float)time * waves[w].frequency));
+            }
+        }*/
+
+        float yPos;
+
+        for (int y = 0; y < height - 1; y++)
+        {
+            for (int x = 0; x < width - 1; x++)
+            {
+                yPos = 0;
+
+                for (int w = 0; w < waves.Length; w++)
+                {
+                    yPos += waves[w].amplitude * Mathf.Sin(2 * Mathf.PI * (Mathf.Sqrt((waves[w].origin.x - vertices[(x + y * width) * 6 + 5].x)* (waves[w].origin.x - vertices[(x + y * width) * 6 + 5].x) + (waves[w].origin.z - vertices[(x + y * width) * 6 + 5].z)*(waves[w].origin.z - vertices[(x + y * width) * 6 + 5].z)) / waves[w].lenght - (float)time * waves[w].frequency));
+                }
+
+                vertices[(x + y * width) * 6 + 5].y = yPos;
+                vertices[((x + 1) + y * width) * 6 + 2].y = yPos;
+                vertices[((x + 1) + y * width) * 6 + 3].y = yPos;
+                vertices[(x + (y + 1) * width) * 6 + 1].y = yPos;
+                vertices[(x + (y + 1) * width) * 6 + 4].y = yPos;
+                vertices[((x + 1) + (y + 1) * width) * 6].y = yPos;
+            }
         }
 
         mesh.vertices = vertices;
