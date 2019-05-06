@@ -32,8 +32,6 @@ public class Water : MonoBehaviour
         mesh = new Mesh();
         vertices = new Vector3[width * height * 6];
         MakeMesh(meshFilter);
-
-        GetComponent<BoxCollider>().size = new Vector3(width * squareSize, 1, height * squareSize);
     }
 
     void Update()
@@ -112,5 +110,17 @@ public class Water : MonoBehaviour
         mesh.vertices = vertices;
         mesh.RecalculateNormals();
         meshFilter.mesh = mesh;
+    }
+
+    public float WaterLevel(Vector3 pos)
+    {
+        float y = 0;
+
+        for (int w = 0; w < waves.Length; w++)
+        {
+            y += waves[w].amplitude * Mathf.Sin(2 * Mathf.PI * (Mathf.Sqrt((waves[w].origin.x - pos.x) * (waves[w].origin.x - pos.x) + (waves[w].origin.z - pos.z) * (waves[w].origin.z - pos.z)) / waves[w].lenght - (float)time * waves[w].frequency));
+        }
+
+        return y;
     }
 }
