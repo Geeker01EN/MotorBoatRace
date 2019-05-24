@@ -33,7 +33,7 @@ public class BoatMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (Input.GetAxis("Horizontal") < -0.2f || Input.GetAxis("Horizontal") > 0.2f)
+        if (Input.GetAxis("Horizontal") < -.4f || Input.GetAxis("Horizontal") > .4f)
         {
             transform.rotation = Quaternion.EulerRotation(0, transform.rotation.ToEulerAngles().y + Input.GetAxis("Horizontal") * turningSpeed * Time.fixedDeltaTime, 0);
         }
